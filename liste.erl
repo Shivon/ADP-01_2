@@ -1,20 +1,9 @@
-% Eine ADT Liste ist zu implementieren:
 % Vorgabe:
 % Funktional (nach außen)
-% Die Liste beginnt bei Position 1.
-% Die Liste arbeitet nicht destruktiv, d.h. wird ein Element an einer vorhandenen Position eingefügt, wird das dort stehende Element um eine Position verschoben.
-% equal testet auf strukturelle Gleichheit
 % eoCount(L) zählt die Anzahl der in der Länge geraden bzw. ungeraden Listen in der Liste L inklusive dieser Liste selbst, also alle möglichen Listen! Eine leere Liste wird als Liste mit gerader Länge angesehen. In der Liste können Elemente vorkommen, die keine Liste sind. Rückgabe ist das Tupel [<Anzahl gerade>,<Anzahl ungerade>]
-% Technisch (nach innen)
-% Die Liste ist intern mittels dem Erlang Tupel { } zu realisieren.
-% Die zugehörige Datei heißt liste.erl
+
 % Objektmengen: pos, elem, list
 % Operationen: (semantische Signatur) / (syntaktische Struktur)
-% create: ∅ → list                                             / create()
-% isEmpty: list → bool                                       / isEmpty(<Liste>)
-% isList: list → bool                                           / isList(<Liste>)
-% equal: list × list → bool                                  / equal(<Liste>,<Liste>)
-% laenge: list → int                                            / laenge(<Liste>)
 % insert:  list × pos × elem → list                     / insert(<Liste>,<Position>,<Element>)
 % delete: list × pos → list                                 / delete(<Liste>,<Position>)
 % find: list × elem → pos                                  / find(<Liste>,<Element>)
@@ -25,6 +14,7 @@
 
 -module(liste).
 -compile(export_all).
+
 
 % create: ∅ → list
 create() -> {}.
@@ -39,21 +29,58 @@ isEmpty(List) -> Length = laenge(List), Length == 0.
 laenge(List) -> laenge_(List, 0).
 
 laenge_({}, Accu) -> Accu;
-laenge_({_Head, Tail}, Accu) -> laenge_(Tail, Accu + 1).
+laenge_({Head, _Tail}, Accu) -> laenge_(Head, Accu + 1).
 
 
 % isList: list → bool
 isList({}) -> true;
-isList({_Head, Tail}) -> isList(Tail);
+isList({Head, _Tail}) -> isList(Head);
 isList(_) -> false.
 
 
+% equal: list × list → bool
+% Equal tests for structural equality.
+equal({}, {}) -> true;
+equal({FirstHead, FirstTail}, {SecondHead, SecondTail}) when FirstTail == SecondTail ->
+  equal(FirstHead, SecondHead);
+equal(_, _) -> false.
 
-% equal(<Liste>,<Liste>)
-% insert(<Liste>,<Position>,<Element>)
-% delete(<Liste>,<Position>)
-% find(<Liste>,<Element>)
-% retrieve(<Liste>,<Position>)
+
+% find: list × elem → pos
+% returns nil, when element is not found
+find({}, _) -> nil;
+find({Head, Tail}, Element) when Tail == Element -> laenge({Head, Tail});
+find({Head, _Tail}, Element) -> find(Head, Element).
+% TODO: Frage: so wie oben besser, oder auch bei letztem Fall nochmal sicherheitshalber einen Guard einbauen?
+% find({Head, Tail}, Element) when Tail /= Element -> find(Head, Element).
+
+
+% retrieve: list × pos → elem
+retrieve({}, _) -> nil;
+retrieve(List, Position) ->
+  Length = laenge(List),
+  {Head, Tail} = List,
+  if
+    Length < Position -> nil;
+    Length == Position -> Tail;
+    Length > Position -> retrieve(Head, Position)
+  end.
+
+
+% concat: list × list → list
 % concat(<Liste>,<Liste>)
+
+
+% insert:  list × pos × elem → list
+% List starts at position 1.
+% Insertion is non-destructive:
+%   if element is inserted at a position, at which already another element is,
+%   the other element is shifted by one position.
+% insert(<Liste>,<Position>,<Element>)
+% insert({}, 1, Element) -> {Element, {}};
+% insert({Head, Tail}, Position, Element) ->
+
+
+% delete(<Liste>,<Position>)
 % diffListe(<Liste>,<Liste>)
 % eoCount(<Liste>)
