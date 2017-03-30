@@ -4,7 +4,6 @@
 
 % Objektmengen: pos, elem, list
 % Operationen: (semantische Signatur) / (syntaktische Struktur)
-% concat: list × list → list                                  / concat(<Liste>,<Liste>)
 % diffListe: list × list → list                                / diffListe(<Liste>,<Liste>)
 % eoCount: list → [int,int]                                  / eoCount(<Liste>)
 
@@ -86,6 +85,12 @@ insert({}, _, _) -> {}.
 
 
 % concat: list × list → list
+concat({}, List) -> List;
+concat(List, {}) -> List;
+concat(FirstList, {Head, Tail}) ->
+  LengthFirstList = length(FirstList),
+  AccuList = insert(FirstList, LengthFirstList + 1, Head),
+  concat(AccuList, Tail).
 
 
 % diffList(<Liste>,<Liste>)
