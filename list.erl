@@ -4,7 +4,6 @@
 
 % Objektmengen: pos, elem, list
 % Operationen: (semantische Signatur) / (syntaktische Struktur)
-% diffListe: list × list → list                                / diffListe(<Liste>,<Liste>)
 % eoCount: list → [int,int]                                  / eoCount(<Liste>)
 
 -module(list).
@@ -18,6 +17,7 @@
 % L3 = {1, {2, {3, {}}}}.
 % L4 = {4, {5, {6, {}}}}.
 % L5 = {9, {}}.
+% L6 = {99, {2, {101, {1, {2, {}}}}}}.
 
 % create: ∅ → list
 create() -> {}.
@@ -93,5 +93,49 @@ concat(FirstList, {Head, Tail}) ->
   concat(AccuList, Tail).
 
 
-% diffList(<Liste>,<Liste>)
+% diffListe: list × list → list
+diffList(FirstList, SecondList) -> diffList_(FirstList, SecondList, {}).
+
+diffList_(List, {}, ResultList) -> concat(List, ResultList);
+diffList_({}, List, ResultList) -> concat(List, ResultList);
+diffList_(FirstList, SecondList, ResultList) ->
+  {FirstHead, FirstTail} = FirstList,
+  {SecondHead, SecondTail} = SecondList,
+  FirstHeadInSecondList = elementInList(FirstHead, SecondList),
+  SecondHeadInFirstList = elementInList(SecondHead, FirstList),
+
+  if
+    FirstHeadInSecondList and SecondHeadInFirstList ->
+      NewFirstList = deleteAll(FirstTail, SecondHead),
+      NewSecondList = deleteAll(SecondTail, FirstHead),
+      diffList_(NewFirstList, NewSecondList, ResultList);
+
+    FirstHeadInSecondList and not(SecondHeadInFirstList) ->
+      NewSecondList = deleteAll(SecondTail, FirstHead),
+      diffList_(FirstTail, NewSecondList, {SecondHead, ResultList});
+
+    not(FirstHeadInSecondList) and SecondHeadInFirstList ->
+      NewFirstList = deleteAll(FirstTail, SecondHead),
+      diffList_(NewFirstList, SecondTail, {FirstHead, ResultList});
+
+    not(FirstHeadInSecondList) and not(SecondHeadInFirstList) ->
+      diffList_(FirstTail, SecondTail, {FirstHead, {SecondHead, ResultList}})
+  end.
+
+
 % eoCount(<Liste>)
+
+
+
+% Helper
+% elementInList: elem × list → bool
+elementInList(_Element, {}) -> false;
+elementInList(Element, {Head, _Tail}) when Element == Head -> true;
+elementInList(Element, {_Head, Tail}) -> elementInList(Element, Tail).
+
+
+% deleteAll: list × elem → list
+% deletes all elements with the same value as given element from a given list and returns new list
+deleteAll({}, _) -> {};
+deleteAll({Head, Tail}, Element) when Head == Element -> deleteAll(Tail, Element);
+deleteAll({Head, Tail}, Element) -> {Head, deleteAll(Tail, Element)}.
