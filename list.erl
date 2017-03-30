@@ -4,7 +4,6 @@
 
 % Objektmengen: pos, elem, list
 % Operationen: (semantische Signatur) / (syntaktische Struktur)
-% insert:  list × pos × elem → list                     / insert(<Liste>,<Position>,<Element>)
 % concat: list × list → list                                  / concat(<Liste>,<Liste>)
 % diffListe: list × list → list                                / diffListe(<Liste>,<Liste>)
 % eoCount: list → [int,int]                                  / eoCount(<Liste>)
@@ -76,15 +75,17 @@ delete({_Head, Tail}, 1) -> Tail;
 delete({Head, Tail}, Position) -> {Head, delete(Tail, Position - 1)}.
 
 
-% % concat: list × list → list
+% insert:  list × pos × elem → list
+% List starts at position 1.
+% Insertion is non-destructive:
+%   if element is inserted at a position, at which already another element is,
+%   the other element is shifted by one position.
+insert(List, 1, Element) -> {Element, List};
+insert({Head, Tail}, Position, Element) -> {Head, insert(Tail, Position - 1, Element)};
+insert({}, _, _) -> {}.
 
 
-% % insert:  list × pos × elem → list
-% % List starts at position 1.
-% % Insertion is non-destructive:
-% %   if element is inserted at a position, at which already another element is,
-% %   the other element is shifted by one position.
-% % insert(<Liste>,<Position>,<Element>)
+% concat: list × list → list
 
 
 % diffList(<Liste>,<Liste>)
