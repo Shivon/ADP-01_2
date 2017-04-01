@@ -1,11 +1,3 @@
-% Vorgabe:
-% Funktional (nach außen)
-% eoCount(L) zählt die Anzahl der in der Länge geraden bzw. ungeraden Listen in der Liste L inklusive dieser Liste selbst, also alle möglichen Listen! Eine leere Liste wird als Liste mit gerader Länge angesehen. In der Liste können Elemente vorkommen, die keine Liste sind. Rückgabe ist das Tupel [<Anzahl gerade>,<Anzahl ungerade>]
-
-% Objektmengen: pos, elem, list
-% Operationen: (semantische Signatur) / (syntaktische Struktur)
-% eoCount: list → [int,int]                                  / eoCount(<Liste>)
-
 -module(list).
 -compile({no_auto_import,[length/1]}).
 -compile(export_all).
@@ -123,8 +115,35 @@ diffList_(FirstList, SecondList, ResultList) ->
   end.
 
 
-% eoCount(<Liste>)
+% TODO: ich zaehle die leere Abschlussliste nicht mit, da sie zur Struktur einer Liste wie eine Nullterminierung gehoert,
+%       also keine leere Liste im eigentlichen Sinne ist   ---   ist beim Kommentar zur leeren Liste => gerade Laenge nur eine komplett
+%       leere Liste gemeint oder soll eine leere Liste auch als Head moeglich sein?
 
+% eoCount: list → [int,int]
+% eoCount(L) counts the lists with even and odd length within list L including list L itself. An empty list is considered to have
+% even length. List L can include elements which are no lists. Return value is the tuple [<number or even lists>, <number of odd lists>]
+eoCount(List) ->
+  IsEven = hasEvenLength(List),
+  if
+    IsEven -> eoCount_(List, [1, 0]);
+    not(IsEven) -> eoCount_(List, [0, 1])
+  end.
+
+eoCount_({}, Result) -> Result;
+eoCount_(List, [Even, Odd]) ->
+  {Head, Tail} = List,
+  HeadIsList = isList(Head),
+  if
+    not(HeadIsList) -> eoCount_(Tail, [Even, Odd]);
+    HeadIsList ->
+      HeadIsEven = hasEvenLength(Head),
+      if
+        HeadIsEven -> eoCount_(Tail, [Even + 1, Odd]);
+        not(HeadIsEven) -> eoCount_(Tail, [Even, Odd + 1])
+      end
+  end.
+% {{1, {2, {}}}, {{1, {2, {}}}, {{101, {1, {2, {}}}}, {1, {2, {}}}}}}.
+% {{1, {2, {}}}, {2, {{101, {1, {2, {}}}}, {1, {2, {}}}}}}.
 
 
 % Helper
@@ -139,3 +158,11 @@ elementInList(Element, {_Head, Tail}) -> elementInList(Element, Tail).
 deleteAll({}, _) -> {};
 deleteAll({Head, Tail}, Element) when Head == Element -> deleteAll(Tail, Element);
 deleteAll({Head, Tail}, Element) -> {Head, deleteAll(Tail, Element)}.
+
+
+% hasEvenLength: list → bool
+hasEvenLength(List) -> isEven(length(List)).
+
+
+% isEven: integer → bool
+isEven(Integer) -> Integer rem 2 == 0.
