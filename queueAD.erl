@@ -19,7 +19,7 @@
 % isEmptyQ: queue → bool                               / isEmptyQ(<Queue>)
 % equalQ: queue × queue → bool                    / equalQ(<Queue>,<Queue>)
 
--module(queue).
+-module(queueAD).
 -compile(export_all).
 % -export([createQ/0, enqueue/2, dequeue/1, front/1, isEmptyQ/1, equalQ/2]).
 -import(stack, [createS/0, push/2, pop/1, top/1, isEmptyS/1, equalS/2, reverseS/1]).
@@ -49,6 +49,8 @@ front({InStack, OutStack}) ->
     OutStackEmpty -> NewOutStack = reverseS(InStack), top(NewOutStack);
     true -> top(OutStack)
   end.
+% {{99, {2, {101, {1, {2, {}}}}}}, {}}.
+% {{99, {2, {101, {1, {2, {}}}}}}, {1,{}}}.
 
 
 % isEmptyQ: queue → bool
