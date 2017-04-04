@@ -48,8 +48,6 @@ find(List, Element) -> find_(List, Element, 1).
 find_({}, _, _) -> nil;
 find_({Head, _Tail}, Element, AccuPosition) when Head == Element -> AccuPosition;
 find_({_Head, Tail}, Element, AccuPosition) -> find_(Tail, Element, AccuPosition + 1).
-% TODO: Frage: so wie oben besser, oder auch bei letztem Fall nochmal sicherheitshalber einen Guard einbauen?
-% find_({Head, Tail}, Element, AccuPosition) when Head /= Element -> find_(Tail, Element, AccuPosition + 1).
 
 
 % retrieve: list × pos → elem
@@ -102,26 +100,22 @@ diffList_(FirstList, SecondList, ResultList) ->
       NewSecondList = deleteAll(SecondTail, FirstHead),
       diffList_(NewFirstList, NewSecondList, ResultList);
 
-    FirstHeadInSecondList and not(SecondHeadInFirstList) ->
+    FirstHeadInSecondList ->
       NewSecondList = deleteAll(SecondTail, FirstHead),
       diffList_(FirstTail, NewSecondList, {SecondHead, ResultList});
 
-    not(FirstHeadInSecondList) and SecondHeadInFirstList ->
+    SecondHeadInFirstList ->
       NewFirstList = deleteAll(FirstTail, SecondHead),
       diffList_(NewFirstList, SecondTail, {FirstHead, ResultList});
 
-    not(FirstHeadInSecondList) and not(SecondHeadInFirstList) ->
-      diffList_(FirstTail, SecondTail, {FirstHead, {SecondHead, ResultList}})
+    true -> diffList_(FirstTail, SecondTail, {FirstHead, {SecondHead, ResultList}})
   end.
 
-
-% TODO: ich zaehle die leere Abschlussliste nicht mit, da sie zur Struktur einer Liste wie eine Nullterminierung gehoert,
-%       also keine leere Liste im eigentlichen Sinne ist   ---   ist beim Kommentar zur leeren Liste => gerade Laenge nur eine komplett
-%       leere Liste gemeint oder soll eine leere Liste auch als Head moeglich sein?
 
 % eoCount: list → [int,int]
 % eoCount(L) counts the lists with even and odd length within list L including list L itself. An empty list is considered to have
 % even length. List L can include elements which are no lists. Return value is the tuple [<number or even lists>, <number of odd lists>]
+% Note: the empty list, which indicates the end of the list, is not counted as element or as even list
 eoCount(List) ->
   IsEven = hasEvenLength(List),
   if

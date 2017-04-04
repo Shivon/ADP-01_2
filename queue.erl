@@ -46,10 +46,9 @@ createQ() -> {createS(), createS()}.
 front({InStack, OutStack}) ->
   OutStackEmpty = isEmptyS(OutStack),
   if
-    not(OutStackEmpty) -> top(OutStack);
-    OutStackEmpty ->
-      NewOutStack = reverseS(InStack),
-      top(NewOutStack).
+    OutStackEmpty -> NewOutStack = reverseS(InStack), top(NewOutStack);
+    true -> top(OutStack)
+  end.
 
 
 % isEmptyQ: queue → bool
