@@ -1,22 +1,11 @@
-% Technisch (nach innen)
-%
-%     1. equal testet auf strukturelle Gleichheit.
-%
-% Objektmengen:  elem, btree, high
-% Operationen: (semantische Signatur) / (syntaktische Struktur)
-% is_empty: btree → bool                         / is_empty(<BTree>)
-% equal: btree × btree → bool                / equal(<BTree>,<BTree>)
-
 -module(btree).
--compile(export_all).
-% -export([init_btree/0, is_btree/1, insert_node/2, is_empty/1, equal/2]).
+-export([init_btree/0, is_btree/1, insert_node/2, is_empty/1, equal/2]).
 
 
 % Pattern {{Parent, Height}, {LeftChild, Height}, {RightChild, Height}}
 % Height of the tree: Empty tree = 0, only root = 1 and so on
 % Attention: Height != Level! Height at each node is the height of the partial tree from this node on,
 % so the height gets smaller towards the leafs
-
 
 % valid trees:
 % T1 = {{6,4}, {{3,1},{},{}}, {{10,3}, {{9,1},{},{}}, {{15,2},{{11,1},{},{}},{{34,1},{},{}}}}}.
@@ -25,6 +14,7 @@
 % T4 = {{7,2},{},{{10,1},{},{}}}.
 % T5 = {{7,3},{},{{10,2},{},{{15,1},{},{}}}}.
 % T6 = {{7,3},{{5,1},{},{}},{{10,2},{},{{15,1},{},{}}}}.
+% T7 = {{6,4}, {{3,1},{},{}}, {{10,3}, {{9,1},{},{}}, {{15,2},{{11,1},{},{}},{{33,1},{},{}}}}}.
 % invalid trees:
 % TT1 = {{6,4}, {{3,1},{},{}}, {{10,3}, {{9,1},{},{}}, {{15,2},{{11,1},{},7},{{34,1},{},{}}}}}.
 % TT2 = {{6,4}, {{3,1},{},{}}, {{10,3}, {{9,1},{},{}}, {{15,2},{{11,1},{}},{{34,1},{},{}}}}}.
@@ -100,11 +90,21 @@ insert_node({{Parent, _Height}, LeftChild, RightChild}, Element) ->
 
 
 % is_empty: btree → bool
-% is_empty(<BTree>)
+is_empty(Btree) -> Btree == {}.
 
 
 % equal: btree × btree → bool
-% equal(<BTree>,<BTree>)
+equal({}, {}) -> true;
+equal({}, _SecondBtree) -> false;
+equal(_FirstBtree, {}) -> false;
+equal({FirstParent, FirstLeftChild, FirstRightChild}, {SecondParent, SecondLeftChild, SecondRightChild}) ->
+  {FirstParentElem, FirstParentHeight} = FirstParent,
+  {SecondParentElem, SecondParentHeight} = SecondParent,
+  if
+    (FirstParentElem == SecondParentElem) and (FirstParentHeight == SecondParentHeight) ->
+      equal(FirstLeftChild, SecondLeftChild) and equal(FirstRightChild, SecondRightChild);
+    true -> false
+  end.
 
 
 % Helper
