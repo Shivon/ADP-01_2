@@ -1,13 +1,9 @@
 % Technisch (nach innen)
 %
 %     1. equal testet auf strukturelle Gleichheit.
-%     3. is_btree überprüft, ob BTree von korrekter syntaktischer Struktur ist und ob die Semantik (Sortierung und Höhe) korrekt ist.
-%         Bei der Prüfung darf der Baum nur einmal von oben nach unten durchlaufen werden und wegen der Rekursion dann einmal von unten nach oben.
-%         Bei der semantischen Prüfung eines Knotens haben also alle dazu benötigten Informationen direkt verwertbar als Datenstruktur vorzuliegen.
 %
 % Objektmengen:  elem, btree, high
 % Operationen: (semantische Signatur) / (syntaktische Struktur)
-% is_btree: btree → bool                                    / is_btree(<BTree>)
 % is_empty: btree → bool                         / is_empty(<BTree>)
 % equal: btree × btree → bool                / equal(<BTree>,<BTree>)
 
@@ -16,16 +12,60 @@
 % -export([init_btree/0, is_btree/1, insert_node/2, is_empty/1, equal/2]).
 
 
-% init_btree: ∅ → btree
-init_btree() -> {}.
-
 % Pattern {{Parent, Height}, {LeftChild, Height}, {RightChild, Height}}
 % Height of the tree: Empty tree = 0, only root = 1 and so on
 % Attention: Height != Level! Height at each node is the height of the partial tree from this node on,
 % so the height gets smaller towards the leafs
 
+
+% valid trees:
+% T1 = {{6,4}, {{3,1},{},{}}, {{10,3}, {{9,1},{},{}}, {{15,2},{{11,1},{},{}},{{34,1},{},{}}}}}.
+% T2 = {}.
+% T3 = {{7,1},{},{}}.
+% T4 = {{7,2},{},{{10,1},{},{}}}.
+% T5 = {{7,3},{},{{10,2},{},{{15,1},{},{}}}}.
+% T6 = {{7,3},{{5,1},{},{}},{{10,2},{},{{15,1},{},{}}}}.
+% invalid trees:
+% TT1 = {{6,4}, {{3,1},{},{}}, {{10,3}, {{9,1},{},{}}, {{15,2},{{11,1},{},7},{{34,1},{},{}}}}}.
+% TT2 = {{6,4}, {{3,1},{},{}}, {{10,3}, {{9,1},{},{}}, {{15,2},{{11,1},{}},{{34,1},{},{}}}}}.
+% TT3 = {{6,5}, {{3,1},{},{}}, {{10,3}, {{9,1},{},{}}, {{15,2},{{11,1},{}},{{34,1},{},{}}}}}.
+% TT4 = {{6,5}, {{3,1},{},{}}, {{10,3}, {{9,1},{},{}}, {{15,2},{{11,1},{},{}},{{34,1},{},{}}}}}.
+% TT5 = {{6,4}, {{3,1},{},{}}, {{10,3}, {{9,1},{},{}}, {{15,2},{{20,1},{},{}},{{34,1},{},{}}}}}.
+% TT6 = {{6,4}, {{3,1},{},{}}, {{10,3}, {{9,1},{},{}}, {{5,2},{{11,1},{},{}},{{34,1},{},{}}}}}.
+
+
+% init_btree: ∅ → btree
+init_btree() -> {}.
+
+
 % is_btree: btree → bool
-% is_btree(<BTree>)
+% is_btree checks if syntax, sorting and height are correct
+% requirement: when checking, the tree must only be traversed once top-down and once bottom-up back from recursion
+is_btree({}) -> true;
+is_btree(Btree) -> is_btree(Btree, true).
+
+
+is_btree({{_Parent, Height}, {}, {}}, Boolean) -> Boolean and (Height == 1);
+
+is_btree({{Parent, Height}, {}, RightChild}, Boolean) ->
+  IsSortingCorrect = parent_element(RightChild) > Parent,
+  IsHeightCorrect = (height(RightChild) + 1) == Height,
+  IsTreeValid = IsSortingCorrect and IsHeightCorrect and Boolean,
+  is_btree(RightChild, IsTreeValid);
+
+is_btree({{Parent, Height}, LeftChild, {}}, Boolean) ->
+  IsSortingCorrect = parent_element(LeftChild) < Parent,
+  IsHeightCorrect = (height(LeftChild) + 1) == Height,
+  IsTreeValid = IsSortingCorrect and IsHeightCorrect and Boolean,
+  is_btree(LeftChild, IsTreeValid);
+
+is_btree({{Parent, Height}, LeftChild, RightChild}, Boolean) ->
+  IsSortingCorrect = (parent_element(LeftChild) < Parent) and (parent_element(RightChild) > Parent),
+  IsHeightCorrect = (max_height(LeftChild, RightChild) + 1) == Height,
+  IsTreeValid = IsSortingCorrect and IsHeightCorrect and Boolean,
+  is_btree(LeftChild, IsTreeValid) and is_btree(RightChild, IsTreeValid);
+
+is_btree(_Object, _Boolean) -> false.
 
 
 % insert_node: btree × elem → btree
@@ -72,10 +112,16 @@ insert_node({{Parent, _Height}, LeftChild, RightChild}, Element) ->
 init_leaf(Element) -> {{Element, 1}, {}, {}}.
 
 
+% parent_element: btree → integer
+% Get element of parent node of given (partial) tree
+parent_element({{Parent, _Height}, _LeftChild, _RightChild}) -> Parent;
+parent_element(_Object) -> nil.
+
+
 % height: btree → integer
 % Get height of parent node of given (partial) tree
-height({}) -> 0;
-height({{_Parent, Height}, _LeftChild, _RightChild}) -> Height.
+height({{_Parent, Height}, _LeftChild, _RightChild}) -> Height;
+height(_Object) -> 0.
 
 
 % max_height: btree × btree → integer
