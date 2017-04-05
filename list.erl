@@ -1,4 +1,5 @@
 -module(list).
+-compile({no_auto_import,[is_list/1]}).
 -export([create/0, is_empty/1, len/1, is_list/1, equal/2, find/2, retrieve/2, delete/2, insert/3, concat/2, diff_list/2, even_odd_count/1]).
 
 % List model: {1, {2, {3, {}}}} => Pos1 = 1, Pos2 = 2 etc
